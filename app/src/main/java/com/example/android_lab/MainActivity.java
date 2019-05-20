@@ -7,9 +7,13 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,6 +38,19 @@ public class MainActivity extends AppCompatActivity {
         this.adapter = new SimpleCursorAdapter(this, android.R.layout.simple_list_item_2, db.lista(), new String[]{"_id", "gatunek"}, new int[]{android.R.id.text1, android.R.id.text2}, SimpleCursorAdapter.IGNORE_ITEM_VIEW_TYPE);
         ListView listview = (ListView) findViewById(R.id.listView);
         listview.setAdapter(this.adapter);
+
+        listview.setOnItemClickListener(new AdapterView.OnItemClickListener()
+        {
+            @Override
+            public void onItemClick(AdapterView<?> adapter, View view, int pos, long id)
+            {
+                TextView name = (TextView) view.findViewById(android.R.id.text1);
+                Animal zwierz = db.pobierz(Integer.parseInt(name.getText().toString()));
+                Intent intencja = new Intent(getApplicationContext(), dodajWpis.class);intencja.putExtra("element", zwierz);startActivityForResult(intencja, 2);
+
+            }
+        });
+
     }
 
     @Override
@@ -53,8 +70,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == 1 && resultCode == RESULT_OK) {
             Bundle extras = data.getExtras();
-            String nowy = (String) extras.get("wpis");
-            target.add(nowy);
+            Animal nowy = (Animal) extras.getSerializable("nowy");
+            this.db.dodaj(nowy);
+            adapter.changeCursor(db.lista());
             adapter.notifyDataSetChanged();
         }
     }
